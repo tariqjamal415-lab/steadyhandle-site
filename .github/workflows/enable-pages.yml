@@ -7,22 +7,22 @@ on:
 
 permissions:
   pages: write
+  id-token: write
 
 jobs:
   configure:
     runs-on: ubuntu-latest
     steps:
-      - name: Serve Pages from main / (root)
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Switch Pages source to main / (root)
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
-          set -euo pipefail
-          if gh api "repos/$REPO/pages" >/dev/null 2>&1; then
-            gh api -X PUT "repos/$REPO/pages" \
-              -f build_type=legacy -f 'source[branch]=main' -f 'source[path]=/'
-          else
-            gh api -X POST "repos/$REPO/pages" \
-              -f build_type=legacy -f 'source[branch]=main' -f 'source[path]=/'
-          fi
+          gh api -X PUT "repos/$REPO/pages" \
+            -f build_type=legacy -f 'source[branch]=main' -f 'source[path]=/' \
+            || echo "could not switch to branch source"
           gh api "repos/$REPO/pages"
